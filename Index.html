@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CELESTIA">
+<meta name="theme-color" content="#06061A">
+<title>CELESTIA ✦ 毎日の運勢</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#06061A;color:#F0EBE0;font-family:'Noto Serif JP',serif;min-height:100vh}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 80px}
+
+/* ─── ロゴ ─── */
+.logo{font-family:'Cinzel',serif;font-size:22px;color:#C9A84C;letter-spacing:5px;text-align:center;margin-bottom:3px}
+.logo-sub{font-size:10px;color:#3A2A1A;letter-spacing:2px;text-align:center;margin-bottom:22px}
+
+/* ─── 言語バー ─── */
+.lang-row{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:22px}
+.lb{border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:9px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.02);user-select:none}
+.lb:active{transform:scale(.95)}
+.lb.sel{border-color:#C9A84C;background:rgba(201,168,76,.13)}
+.lb-f{font-size:20px}
+.lb-n{font-size:8px;color:#5A4A3A}
+.lb.sel .lb-n{color:#C9A84C}
+
+/* ─── 星座 ─── */
+.lbl{font-family:'Cinzel',serif;font-size:11px;color:#C9A84C;letter-spacing:2px;margin-bottom:9px;display:block}
+.zgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:18px}
+.zcard{background:rgba(255,255,255,.04);border:2px solid rgba(201,168,76,.15);border-radius:13px;padding:14px 6px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+.zcard:active{transform:scale(.96)}
+.zcard.sel{background:rgba(201,168,76,.16);border-color:#C9A84C}
+.zsym{font-size:22px;display:block;margin-bottom:3px}
+.znm{font-size:10px;color:#7A6A5A}
+.zcard.sel .znm{color:#C9A84C}
+
+/* ─── 生年月日 ─── */
+.brow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.bi{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:11px 6px;color:#F0EBE0;font-size:13px;text-align:center;outline:none;-webkit-appearance:none;font-family:'Noto Serif JP',serif}
+.bi:focus{border-color:#C9A84C}
+.bi::placeholder{color:#3A2A1A;font-size:11px}
+
+/* ─── ボタン ─── */
+.gbtn{width:100%;padding:16px;background:linear-gradient(135deg,#C9A84C,#8A6010);border:none;border-radius:13px;color:#06061A;font-family:'Cinzel',serif;font-size:15px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-bottom:10px;-webkit-appearance:none}
+.gbtn:active{transform:scale(.98)}
+.gbtn:disabled{opacity:.4;cursor:default}
+.gbtn-out{background:transparent;border:1px solid rgba(201,168,76,.3);color:#C9A84C}
+
+/* ─── ローダー ─── */
+.loader{display:none;text-align:center;padding:70px 20px}
+.loader.on{display:block}
+.ring{width:72px;height:72px;border-radius:50%;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;animation:sp 1s linear infinite;margin:0 auto 18px;position:relative}
+.ring::after{content:'✦';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;color:#C9A84C;animation:sp 1s linear infinite reverse}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ltxt{font-size:13px;color:#4A3A2A;animation:fp 2s ease-in-out infinite}
+@keyframes fp{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ─── 結果 ─── */
+.result{display:none}.result.on{display:block}
+
+.res-top{text-align:center;margin-bottom:22px}
+.res-sym{font-size:64px;display:block;margin-bottom:8px;animation:fl 4s ease-in-out infinite;filter:drop-shadow(0 0 16px rgba(201,168,76,.4))}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.res-sname{font-family:'Cinzel',serif;font-size:13px;color:#C9A84C;letter-spacing:3px;margin-bottom:4px}
+.res-date{font-size:11px;color:#3A2A1A}
+
+/* キーワード */
+.keyword{background:linear-gradient(135deg,rgba(107,70,193,.15),rgba(201,168,76,.07));border:1px solid rgba(201,168,76,.25);border-radius:16px;padding:20px;text-align:center;margin-bottom:14px;position:relative}
+.keyword::before{content:'✦';position:absolute;top:10px;left:14px;font-size:11px;color:rgba(201,168,76,.25)}
+.keyword::after{content:'✦';position:absolute;top:10px;right:14px;font-size:11px;color:rgba(201,168,76,.25)}
+.kw-txt{font-size:17px;color:#F0EBE0;line-height:1.6;font-weight:500}
+
+/* 物語 — メイン */
+.story{background:rgba(255,255,255,.025);border:1px solid rgba(201,168,76,.12);border-radius:16px;padding:22px;margin-bottom:14px}
+.story-icon{font-size:28px;text-align:center;display:block;margin-bottom:12px}
+.story-body{font-size:14px;color:rgba(240,235,224,.86);line-height:2.5}
+.story-body p{margin-bottom:14px}
+.story-body p:last-child{margin-bottom:0}
+
+/* スコア */
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.sc{background:rgba(255,255,255,.025);border:1px solid rgba(201,168,76,.1);border-radius:12px;padding:14px}
+.sc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.sc-lbl{font-size:11px;color:#4A3A2A}
+.sc-val{font-family:'Cinzel',serif;font-size:22px;color:#C9A84C}
+.sc-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.sc-fill{height:100%;border-radius:2px;transition:width 1.4s ease}
+
+/* ─── ラッキーカード ─── */
+.lucky-card{background:rgba(255,255,255,.02);border:1px solid rgba(201,168,76,.12);border-radius:16px;padding:20px;margin-bottom:14px}
+.lucky-title{font-family:'Cinzel',serif;font-size:11px;color:#C9A84C;letter-spacing:2px;margin-bottom:14px}
+.lucky-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lucky-item{background:rgba(255,255,255,.025);border:1px solid rgba(201,168,76,.1);border-radius:11px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.lucky-icon{font-size:20px;flex-shrink:0}
+.lucky-info{}
+.lucky-lbl{font-size:9px;color:#4A3A2A;letter-spacing:1px;margin-bottom:3px}
+.lucky-val{font-size:13px;color:#F0EBE0;font-weight:500}
+.lucky-item.full{grid-column:1/-1}
+
+/* アクション */
+.act-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.abtn{padding:13px;border-radius:11px;font-size:12px;cursor:pointer;text-align:center;-webkit-appearance:none}
+.abtn:active{transform:scale(.97)}
+.abtn-a{background:linear-gradient(135deg,#C9A84C,#8A6010);border:none;color:#06061A;font-family:'Cinzel',serif;font-weight:700;letter-spacing:1px}
+.abtn-b{background:transparent;border:1px solid rgba(201,168,76,.28);color:#C9A84C;font-family:'Noto Serif JP',serif}
+
+/* シェア */
+.share{background:linear-gradient(135deg,#110F2A,#06061A);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:20px;margin-bottom:14px;display:none}
+.share.on{display:block}
+.share-q{font-size:14px;line-height:2.2;color:rgba(240,235,224,.88);font-style:italic;text-align:center;margin-bottom:8px}
+.share-sig{font-size:10px;color:#3A2A1A;text-align:center;font-family:'Cinzel',serif;letter-spacing:2px}
+
+/* プレミアム */
+.prem{background:linear-gradient(135deg,rgba(107,70,193,.1),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.18);border-radius:16px;padding:20px;text-align:center;margin-bottom:14px}
+.prem-t{font-family:'Cinzel',serif;font-size:14px;color:#C9A84C;margin-bottom:6px}
+.prem-txt{font-size:11px;color:#3A2A1A;line-height:1.9;margin-bottom:14px}
+.prem-plans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pp{border:1px solid rgba(201,168,76,.18);border-radius:11px;padding:13px 8px;cursor:pointer;position:relative}
+.pp:active{transform:scale(.97)}
+.pp.hot{border-color:#C9A84C;background:rgba(201,168,76,.09)}
+.pp-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#C9A84C;color:#06061A;font-size:8px;font-weight:700;padding:2px 10px;border-radius:8px;font-family:'Cinzel',serif;white-space:nowrap}
+.pp-price{font-family:'Cinzel',serif;font-size:22px;color:#C9A84C}
+.pp-period{font-size:9px;color:#3A2A1A;margin-top:2px}
+
+/* RTL */
+.rtl-txt{direction:rtl;text-align:right}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="logo">✦ CELESTIA</div>
+<div class="logo-sub" id="u-sub">7つの古代占術 · 1つの真実</div>
+
+<!-- 言語 -->
+<div class="lang-row" id="langRow"></div>
+
+<!-- 入力フォーム -->
+<div id="formArea">
+<span class="lbl" id="u-sign">✦ あなたの星座</span>
+<div class="zgrid" id="zGrid"></div>
+
+<span class="lbl" id="u-birth">✦ 生年月日（任意）</span>
+<div class="brow">
+<input class="bi" id="by" type="number" placeholder="1990">
+<input class="bi" id="bm" type="number" placeholder="月" min="1" max="12">
+<input class="bi" id="bd" type="number" placeholder="日" min="1" max="31">
+</div>
+
+<button class="gbtn" id="genBtn" disabled onclick="doGen()">✨ 今日の運命を開く</button>
+</div>
+
+<!-- ローダー -->
+<div class="loader" id="loader">
+<div class="ring"></div>
+<div class="ltxt" id="ltxt">星たちの声を聴いています...</div>
+</div>
+
+<!-- 結果 -->
+<div class="result" id="result">
+
+<div class="res-top">
+<span class="res-sym" id="r-sym">♈</span>
+<div class="res-sname" id="r-sname">ARIES</div>
+<div class="res-date" id="r-date"></div>
+</div>
+
+<div class="keyword">
+<div class="kw-txt" id="r-kw">今日のキーワード</div>
+</div>
+
+<div class="story">
+<span class="story-icon" id="r-icon">🌙</span>
+<div class="story-body" id="r-story"></div>
+</div>
+
+<div class="scores" id="r-scores"></div>
+
+<div class="lucky-card">
+<div class="lucky-title" id="u-lucky">✦ TODAY'S LUCKY</div>
+<div class="lucky-grid" id="r-lucky"></div>
+</div>
+
+<div class="act-row">
+<button class="abtn abtn-a" id="u-share" onclick="toggleShare()">📤 シェア</button>
+<button class="abtn abtn-b" id="u-again" onclick="goHome()">🔄 もう一度</button>
+</div>
+
+<div class="share" id="shareBox">
+<div class="share-q" id="r-shareq"></div>
+<div class="share-sig">✦ CELESTIA</div>
+</div>
+
+<div class="prem">
+<div class="prem-t" id="u-pt">✦ 毎朝あなたに届きます</div>
+<div class="prem-txt" id="u-ptxt">7つの古代占術を統合した運勢が<br>毎朝メールで自動配信されます</div>
+<div class="prem-plans">
+<div class="pp" onclick="alert('Stripe URLを設定してください')">
+<div class="pp-price">$3</div>
+<div class="pp-period" id="u-wk">/ week</div>
+</div>
+<div class="pp hot" onclick="alert('Stripe URLを設定してください')">
+<div class="pp-badge" id="u-pop">人気 No.1</div>
+<div class="pp-price">$9.9</div>
+<div class="pp-period" id="u-mo">/ month</div>
+</div>
+</div>
+<button class="gbtn" id="u-pb" style="margin-bottom:0" onclick="alert('Stripe URLを設定してください')">✨ プレミアムを始める</button>
+</div>
+
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════
+// データ定義
+// ══════════════════════════════════
+const ZS = [
+{s:'♈',ja:'牡羊座',en:'Aries',zh:'白羊座',ko:'양자리',ar:'الحمل'},
+{s:'♉',ja:'牡牛座',en:'Taurus',zh:'金牛座',ko:'황소자리',ar:'الثور'},
+{s:'♊',ja:'双子座',en:'Gemini',zh:'双子座',ko:'쌍둥이자리',ar:'الجوزاء'},
+{s:'♋',ja:'蟹座',en:'Cancer',zh:'巨蟹座',ko:'게자리',ar:'السرطان'},
+{s:'♌',ja:'獅子座',en:'Leo',zh:'狮子座',ko:'사자자리',ar:'الأسد'},
+{s:'♍',ja:'乙女座',en:'Virgo',zh:'处女座',ko:'처녀자리',ar:'العذراء'},
+{s:'♎',ja:'天秤座',en:'Libra',zh:'天秤座',ko:'천칭자리',ar:'الميزان'},
+{s:'♏',ja:'蠍座',en:'Scorpio',zh:'天蝎座',ko:'전갈자리',ar:'العقرب'},
+{s:'♐',ja:'射手座',en:'Sagittarius',zh:'射手座',ko:'사수자리',ar:'القوس'},
+{s:'♑',ja:'山羊座',en:'Capricorn',zh:'摩羯座',ko:'염소자리',ar:'الجدي'},
+{s:'♒',ja:'水瓶座',en:'Aquarius',zh:'水瓶座',ko:'물병자리',ar:'الدلو'},
+{s:'♓',ja:'魚座',en:'Pisces',zh:'双鱼座',ko:'물고기자리',ar:'الحوت'}
+];
+
+const SC_C = {
+overall:'linear-gradient(90deg,#6B46C1,#C9A84C)',
+love:'linear-gradient(90deg,#B45309,#F59E0B)',
+money:'linear-gradient(90deg,#065F46,#10B981)',
+health:'linear-gradient(90deg,#1E40AF,#60A5FA)'
+};
+
+const LANGS = {
+ja: {
+flag:'🇯🇵', name:'日本語', dir:'ltr',
+ui:{
+sub:'7つの古代占術 · 1つの真実',
+sign:'✦ あなたの星座',
+birth:'✦ 生年月日（任意・より精密に）',
+bp:['1990年','月','日'],
+gen:'✨ 今日の運命を開く',
+lucky:'✦ TODAY\'S LUCKY',
+share:'📤 シェア', again:'🔄 もう一度',
+pt:'✦ 毎朝あなたに届きます',
+ptxt:'7つの古代占術を統合した運勢が<br>毎朝メールで自動配信されます',
+wk:'/ week', mo:'/ month', pop:'人気 No.1',
+pb:'✨ プレミアムを始める',
+loading:'星たちの声を聴いています...'
+},
+scores:['総合運','恋愛運','金運','健康運'],
+luckyLabels:['🌸 フラワー','🧭 方角','🔢 ナンバー','🎨 カラー','💎 ストーン','⏰ タイム','🍀 フード'],
+locales:'ja-JP',
+prompt:(sign,kin,birth,date)=>`あなたは7つの古代占術に精通した占星術師です。
+西洋占星術・インド占星術・アラビア占星術・数秘術・六壬占星術・マヤ暦・四柱推命の知識を完全に溶け込ませ、占術名や専門用語を一切文中に出さないでください。
+まるで親しい友人が語りかけるように、温かく詩的な日本語で今日の運勢を一つの流れる物語として届けてください。
+
+星座: ${sign}　日付: ${date}　マヤKIN: ${kin}${birth ? '　生年月日: ' + birth : ''}
+
+以下のJSONのみ返答（コードブロック不要・占術名一切不要）:
+{
+"headline": "今日の運勢を象徴するキーワードや一言（15字以内）",
+"icon": "今日の雰囲気を表す絵文字1つ",
+"story": "占術名を一切出さず、星・惑星・気・魂・数字・宇宙・花・光などの言葉を使い、温かく詩的に綴った今日の運勢。320〜400字。2〜3段落に分けて書く。",
+"scores": {
+"overall": 整数0-100,
+"love": 整数0-100,
+"money": 整数0-100,
+"health": 整数0-100
+},
+"lucky": {
+"flower": "今日のラッキーフラワー（例：カスミソウ、バラ、ひまわり）",
+"direction": "今日のラッキー方角（例：北東、南、西北）",
+"number": "今日のラッキーナンバー（例：7, 14, 3）",
+"color": "今日のラッキーカラー（例：ローズゴールド、空色）",
+"stone": "今日のラッキーストーン（例：ローズクォーツ、アメジスト）",
+"time": "今日のラッキータイム（例：午前10時〜11時）",
+"food": "今日のラッキーフード（例：イチゴ、はちみつトースト）"
+},
+"shareQuote": "SNSでシェアしたくなる心に響く一文（45字以内）"
+}`
+},
+en: {
+flag:'🇺🇸', name:'English', dir:'ltr',
+ui:{
+sub:'7 Ancient Systems · 1 Truth',
+sign:'✦ Your Zodiac Sign',
+birth:'✦ Date of Birth (optional)',
+bp:['Year','Month','Day'],
+gen:'✨ Reveal My Destiny',
+lucky:'✦ TODAY\'S LUCKY',
+share:'📤 Share', again:'🔄 Again',
+pt:'✦ Delivered Every Morning',
+ptxt:'Your daily fortune from 7 ancient systems,<br>delivered to your inbox every morning',
+wk:'/ week', mo:'/ month', pop:'Most Popular',
+pb:'✨ Start Premium',
+loading:'Listening to the stars...'
+},
+scores:['Overall','Love','Money','Health'],
+luckyLabels:['🌸 Flower','🧭 Direction','🔢 Number','🎨 Color','💎 Stone','⏰ Lucky Time','🍀 Food'],
+locales:'en-US',
+prompt:(sign,kin,birth,date)=>`You are a master of 7 ancient divination systems.
+Blend Western astrology, Vedic, Arabic astrology, Numerology, Liu Ren, Maya Calendar and BaZi naturally into one flowing story. NEVER mention any system names. Speak warmly and poetically like a wise friend.
+
+Sign: ${sign} Date: ${date} Maya KIN: ${kin}${birth ? ' Birth: ' + birth : ''}
+
+Return ONLY this JSON (no code fences, no system names anywhere):
+{
+"headline": "Today's key message, max 8 words",
+"icon": "one emoji for today's vibe",
+"story": "Warm poetic fortune 200-260 words in 2-3 paragraphs. No system names. Use: stars, planets, cosmic energy, soul, numbers, flowers, light.",
+"scores": {"overall": int0-100, "love": int, "money": int, "health": int},
+"lucky": {
+"flower": "today's lucky flower (e.g. Rose, Lavender, Sunflower)",
+"direction": "today's lucky direction (e.g. Northeast, South)",
+"number": "today's lucky numbers (e.g. 7, 14, 3)",
+"color": "today's lucky color (e.g. Rose Gold, Sky Blue)",
+"stone": "today's lucky stone (e.g. Rose Quartz, Amethyst)",
+"time": "today's lucky time (e.g. 10am - 11am)",
+"food": "today's lucky food (e.g. Strawberries, Honey Toast)"
+},
+"shareQuote": "Inspiring share quote max 15 words"
+}`
+},
+zh: {
+flag:'🇨🇳', name:'中文', dir:'ltr',
+ui:{
+sub:'七大古代占术 · 一个真相',
+sign:'✦ 请选择您的星座',
+birth:'✦ 出生日期（选填）',
+bp:['年份','月','日'],
+gen:'✨ 揭示今日命运',
+lucky:'✦ 今日幸运',
+share:'📤 分享', again:'🔄 重新占卜',
+pt:'✦ 每天早晨送达',
+ptxt:'融合7大古代占术的每日运势<br>每天早晨自动发送到您的邮箱',
+wk:'/ 周', mo:'/ 月', pop:'最受欢迎',
+pb:'✨ 开始尊享会员',
+loading:'正在聆听星星的声音...'
+},
+scores:['综合运势','爱情运势','财运','健康运势'],
+luckyLabels:['🌸 幸运花','🧭 幸运方位','🔢 幸运数字','🎨 幸运颜色','💎 幸运宝石','⏰ 幸运时间','🍀 幸运食物'],
+locales:'zh-CN',
+prompt:(sign,kin,birth,date)=>`你是精通7种古代占卜系统的占星师。
+自然融合西方占星、吠陀占星、阿拉伯占星、数字命理、六壬、玛雅历和四柱推命的知识，绝对不要在文中提及这些系统名称。像温暖的智者朋友一样，用流畅诗意的中文讲述一个完整的故事。
+
+星座: ${sign} 日期: ${date} 玛雅KIN: ${kin}${birth ? ' 生日: ' + birth : ''}
+
+只返回以下JSON（无代码块，文中无系统名称）:
+{
+"headline": "今日运势关键词，15字以内",
+"icon": "一个表情符号",
+"story": "不提系统名称，用星辰·气·灵魂·数字·宇宙·花·光的词汇，温暖诗意地描述今日运势，200-260字，2-3段。",
+"scores": {"overall": 整数0-100, "love": 整数, "money": 整数, "health": 整数},
+"lucky": {
+"flower": "今日幸运花（例：玫瑰、薰衣草）",
+"direction": "今日幸运方位（例：东北、南方）",
+"number": "今日幸运数字（例：7, 14, 3）",
+"color": "今日幸运颜色（例：玫瑰金、天蓝色）",
+"stone": "今日幸运宝石（例：粉晶、紫水晶）",
+"time": "今日幸运时间（例：上午10点至11点）",
+"food": "今日幸运食物（例：草莓、蜂蜜吐司）"
+},
+"shareQuote": "适合分享的金句，25字以内"
+}`
+},
+ko: {
+flag:'🇰🇷', name:'한국어', dir:'ltr',
+ui:{
+sub:'7가지 고대 점술 · 하나의 진실',
+sign:'✦ 별자리를 선택하세요',
+birth:'✦ 생년월일 (선택사항)',
+bp:['년도','월','일'],
+gen:'✨ 오늘의 운명을 열어라',
+lucky:'✦ 오늘의 행운',
+share:'📤 공유', again:'🔄 다시 보기',
+pt:'✦ 매일 아침 도착합니다',
+ptxt:'7가지 고대 점술을 융합한 운세가<br>매일 아침 이메일로 자동 배송됩니다',
+wk:'/ 주', mo:'/ 월', pop:'인기 No.1',
+pb:'✨ 프리미엄 시작하기',
+loading:'별들의 목소리를 듣고 있습니다...'
+},
+scores:['종합운','연애운','금전운','건강운'],
+luckyLabels:['🌸 행운의 꽃','🧭 행운의 방향','🔢 행운의 숫자','🎨 행운의 색상','💎 행운의 보석','⏰ 행운의 시간','🍀 행운의 음식'],
+locales:'ko-KR',
+prompt:(sign,kin,birth,date)=>`당신은 7가지 고대 점술에 정통한 점성술사입니다.
+서양 점성술, 베다 점성술, 아라비아 점성술, 수비학, 육임, 마야력, 사주의 지식을 자연스럽게 융합하되 절대 시스템 이름을 언급하지 마세요. 따뜻하고 시적인 한국어로 하나의 흐르는 이야기로 전달하세요.
+
+별자리: ${sign} 날짜: ${date} 마야KIN: ${kin}${birth ? ' 생년월일: ' + birth : ''}
+
+JSON만 반환（코드 블록 없이, 시스템 이름 없이）:
+{
+"headline": "오늘의 키워드 10자 이내",
+"icon": "이모지 1개",
+"story": "시스템 이름 없이 별·기운·영혼·숫자·우주·꽃·빛의 언어로 따뜻하고 시적으로 오늘의 운세 200-260자·2-3단락",
+"scores": {"overall": 정수0-100, "love": 정수, "money": 정수, "health": 정수},
+"lucky": {
+"flower": "오늘의 행운의 꽃 (예: 장미, 라벤더)",
+"direction": "오늘의 행운의 방향 (예: 북동쪽, 남쪽)",
+"number": "오늘의 행운의 숫자 (예: 7, 14, 3)",
+"color": "오늘의 행운의 색상 (예: 로즈골드, 하늘색)",
+"stone": "오늘의 행운의 보석 (예: 로즈쿼츠, 자수정)",
+"time": "오늘의 행운의 시간 (예: 오전 10시~11시)",
+"food": "오늘의 행운의 음식 (예: 딸기, 꿀 토스트)"
+},
+"shareQuote": "SNS 공유용 영감을 주는 한 마디 25자 이내"
+}`
+},
+ar: {
+flag:'🇸🇦', name:'العربية', dir:'rtl',
+ui:{
+sub:'٧ أنظمة قديمة · حقيقة واحدة',
+sign:'✦ اختر برجك',
+birth:'✦ تاريخ الميلاد (اختياري)',
+bp:['السنة','الشهر','اليوم'],
+gen:'✨ اكشف مصيري اليوم',
+lucky:'✦ حظك اليوم',
+share:'📤 مشاركة', again:'🔄 مرة أخرى',
+pt:'✦ يصلك كل صباح',
+ptxt:'توقعات يومية من 7 أنظمة قديمة<br>ترسل إليك تلقائياً كل صباح',
+wk:'أسبوعي', mo:'شهري', pop:'الأكثر شعبية',
+pb:'✨ ابدأ العضوية المميزة',
+loading:'أستمع إلى النجوم...'
+},
+scores:['العام','الحب','المال','الصحة'],
+luckyLabels:['🌸 زهرة الحظ','🧭 اتجاه الحظ','🔢 رقم الحظ','🎨 لون الحظ','💎 حجر الحظ','⏰ وقت الحظ','🍀 طعام الحظ'],
+locales:'ar-SA',
+prompt:(sign,kin,birth,date)=>`أنت منجم متمكن من 7 أنظمة تنجيم قديمة.
+امزج الفلك الغربي والفيدي والعربي وعلم الأعداد وليو رن وتقويم المايا وباتزي بشكل طبيعي، لكن لا تذكر أسماء الأنظمة أبداً. تحدث بدفء وشعرية باللغة العربية كصديق حكيم.
+
+البرج: ${sign} التاريخ: ${date} KIN المايا: ${kin}${birth ? ' الميلاد: ' + birth : ''}
+
+أعد JSON فقط（بدون كتلة كود، بدون أسماء أنظمة）:
+{
+"headline": "كلمة اليوم 10 كلمات",
+"icon": "رمز تعبيري واحد",
+"story": "بدون أسماء أنظمة، استخدم النجوم·الكواكب·الطاقة·الروح·الأرقام·الزهور·النور. قصة دافئة وشعرية 150-200 كلمة، 2-3 فقرات.",
+"scores": {"overall": رقم0-100, "love": رقم, "money": رقم, "health": رقم},
+"lucky": {
+"flower": "زهرة الحظ اليوم (مثال: وردة، لافندر)",
+"direction": "اتجاه الحظ اليوم (مثال: شمال شرق، جنوب)",
+"number": "أرقام الحظ اليوم (مثال: 7، 14، 3)",
+"color": "لون الحظ اليوم (مثال: ذهبي وردي، أزرق سماوي)",
+"stone": "حجر الحظ اليوم (مثال: كوارتز وردي، أميثيست)",
+"time": "وقت الحظ اليوم (مثال: 10 صباحاً - 11 صباحاً)",
+"food": "طعام الحظ اليوم (مثال: فراولة، توست بالعسل)"
+},
+"shareQuote": "جملة ملهمة للمشاركة 20 كلمة"
+}`
+}
+};
+
+const LUCKY_KEYS = ['flower','direction','number','color','stone','time','food'];
+
+let curLang = LANGS.ja;
+let selSign = null;
+
+// ── 言語バー生成 ──
+(function(){
+const row = document.getElementById('langRow');
+Object.entries(LANGS).forEach(([code, L]) => {
+const el = document.createElement('div');
+el.className = 'lb' + (code === 'ja' ? ' sel' : '');
+el.innerHTML = `<span class="lb-f">${L.flag}</span><span class="lb-n">${L.name}</span>`;
+el.addEventListener('click', () => {
+document.querySelectorAll('.lb').forEach(x => x.classList.remove('sel'));
+el.classList.add('sel');
+curLang = L;
+applyUI(L);
+buildZodiac(L);
+});
+row.appendChild(el);
+});
+})();
+
+// ── UI文言適用 ──
+function applyUI(L) {
+const u = L.ui;
+document.body.style.direction = L.dir;
+document.getElementById('u-sub').textContent = u.sub;
+document.getElementById('u-sign').textContent = u.sign;
+document.getElementById('u-birth').textContent = u.birth;
+['by','bm','bd'].forEach((id,i) => document.getElementById(id).placeholder = u.bp[i]);
+document.getElementById('genBtn').textContent = u.gen;
+document.getElementById('u-lucky').textContent = u.lucky;
+document.getElementById('u-share').textContent = u.share;
+document.getElementById('u-again').textContent = u.again;
+document.getElementById('u-pt').textContent = u.pt;
+document.getElementById('u-ptxt').innerHTML = u.ptxt;
+document.getElementById('u-wk').textContent = u.wk;
+document.getElementById('u-mo').textContent = u.mo;
+document.getElementById('u-pop').textContent = u.pop;
+document.getElementById('u-pb').textContent = u.pb;
+document.getElementById('ltxt').textContent = u.loading;
+}
+
+// ── 星座グリッド生成 ──
+function buildZodiac(L) {
+const g = document.getElementById('zGrid');
+g.innerHTML = '';
+selSign = null;
+document.getElementById('genBtn').disabled = true;
+const code = Object.keys(LANGS).find(k => LANGS[k] === L) || 'ja';
+ZS.forEach(z => {
+const el = document.createElement('div');
+el.className = 'zcard';
+el.innerHTML = `<span class="zsym">${z.s}</span><span class="znm">${z[code] || z.en}</span>`;
+el.addEventListener('click', () => {
+document.querySelectorAll('.zcard').forEach(x => x.classList.remove('sel'));
+el.classList.add('sel');
+selSign = z;
+document.getElementById('genBtn').disabled = false;
+});
+g.appendChild(el);
+});
+}
+
+// ── マヤKIN計算 ──
+function calcKin(y, m, d) {
+const diff = Math.round((new Date(y, m-1, d) - new Date(1994, 1, 4)) / 86400000);
+return ((diff % 260) + 260) % 260 + 1;
+}
+
+// ── 占い生成 ──
+async function doGen() {
+if (!selSign) return;
+const L = curLang;
+const code = Object.keys(LANGS).find(k => LANGS[k] === L) || 'ja';
+const y = document.getElementById('by').value;
+const m = document.getElementById('bm').value;
+const d = document.getElementById('bd').value;
+const hasBirth = y && m && d;
+const kin = hasBirth ? calcKin(+y, +m, +d) : Math.floor(Math.random() * 260) + 1;
+const birthStr = hasBirth ? `${y}/${m}/${d}` : '';
+const today = new Date().toLocaleDateString(L.locales, {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+const signName = selSign[code] || selSign.en;
+
+document.getElementById('formArea').style.display = 'none';
+document.getElementById('result').classList.remove('on');
+document.getElementById('loader').classList.add('on');
+document.getElementById('ltxt').textContent = L.ui.loading;
+
+let parsed = null;
+try {
+const resp = await fetch('https://api.anthropic.com/v1/messages', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+model: 'claude-sonnet-4-20250514',
+max_tokens: 1400,
+messages: [{ role: 'user', content: L.prompt(signName, kin, birthStr, today) }]
+})
+});
+const data = await resp.json();
+const raw = (data.content?.find(b => b.type === 'text')?.text || '').replace(/```json|```/g, '').trim();
+parsed = JSON.parse(raw);
+} catch(e) {}
+
+document.getElementById('loader').classList.remove('on');
+
+if (!parsed) {
+const fb = {
+ja: { h:'天と地が微笑む日', q:'七つの星が今日、あなたの背中をそっと押している。',
+story:'今日、宇宙の気が静かに動き始めています。あなたを包む星のエネルギーが、新しい扉をそっとノックしています。心の中で温めていたことを、今日は少しだけ前に進めてみましょう。\n\n数字が示す今日のテーマは「受け取ること」。思いがけない場所から、温かい言葉や素敵な出会いが訪れるかもしれません。\n\n宇宙はいつも、あなたの準備が整った瞬間を知っています。',
+lucky:{flower:'カスミソウ',direction:'北東',number:'7, 14, 3',color:'ローズゴールド',stone:'ローズクォーツ',time:'午前10時〜11時',food:'イチゴ'}},
+en: { h:'The cosmos smiles upon you', q:'Seven ancient stars align to light your path today.',
+story:'Today, the universe breathes in harmony just for you. A gentle cosmic tide is turning, bringing new energy to areas of your life that have been quietly waiting.\n\nThe numbers that surround you today speak of beginnings and grace. A conversation or chance encounter may carry something unexpected and beautiful.\n\nTrust the quiet whisper within. The universe knows exactly when you are ready.',
+lucky:{flower:'Lavender Rose',direction:'Northeast',number:'7, 14, 3',color:'Rose Gold',stone:'Rose Quartz',time:'10am - 11am',food:'Strawberries'}},
+zh: { h:'天地含笑的美好一天', q:'七颗古老星辰今天为你照亮前路。',
+story:'今天，宇宙的气息悄悄流动，专为你而来。包围着你的星辰能量正在轻轻敲击新的大门。\n\n今日数字的主题是"接受"。在意想不到的地方，可能会有温暖的话语或美好的相遇。\n\n宇宙总是知道你准备好的那一刻。',
+lucky:{flower:'薰衣草玫瑰',direction:'东北方',number:'7, 14, 3',color:'玫瑰金',stone:'粉晶',time:'上午10点至11点',food:'草莓'}},
+ko: { h:'하늘과 땅이 미소 짓는 날', q:'일곱 별자리가 오늘 당신의 길을 조용히 밝혀줍니다.',
+story:'오늘 우주의 기운이 조용히 움직이기 시작합니다. 당신을 감싸는 별의 에너지가 새로운 문을 살며시 두드리고 있습니다.\n\n오늘의 숫자가 나타내는 주제는 "받아들이는 것"입니다. 예상치 못한 곳에서 따뜻한 말이나 아름다운 만남이 찾아올지도 모릅니다.\n\n우주는 항상 당신이 준비된 순간을 알고 있습니다.',
+lucky:{flower:'라벤더 장미',direction:'북동쪽',number:'7, 14, 3',color:'로즈골드',stone:'로즈쿼츠',time:'오전 10시~11시',food:'딸기'}},
+ar: { h:'يوم يبتسم فيه الكون لك', q:'سبعة أنظمة كونية تتآلف اليوم في صالحك.',
+story:'اليوم، يتدفق نسيم الكون بهدوء، خصيصاً من أجلك. طاقة النجوم التي تحيط بك تطرق باباً جديداً برفق.\n\nموضوع أرقام اليوم هو "الاستقبال". في مكان غير متوقع، قد تصلك كلمات دافئة أو لقاء جميل.\n\nالكون يعلم دائماً متى تكون مستعداً.',
+lucky:{flower:'وردة لافندر',direction:'شمال شرق',number:'٧، ١٤، ٣',color:'ذهبي وردي',stone:'كوارتز وردي',time:'١٠ صباحاً - ١١ صباحاً',food:'فراولة'}}
+};
+const f = fb[code] || fb.ja;
+parsed = {
+headline: f.h, icon: '🌸', story: f.story,
+scores: { overall:84, love:78, money:88, health:72 },
+lucky: f.lucky, shareQuote: f.q
+};
+}
+
+renderResult(parsed, signName, L, code);
+}
+
+// ── 結果表示 ──
+function renderResult(d, signName, L, code) {
+document.getElementById('r-sym').textContent = selSign.s;
+document.getElementById('r-sname').textContent = selSign.en.toUpperCase() + ' · ' + signName;
+document.getElementById('r-date').textContent = new Date().toLocaleDateString(L.locales, {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+if (L.dir === 'rtl') {
+document.getElementById('r-date').style.direction = 'rtl';
+document.getElementById('r-sname').style.direction = 'ltr';
+}
+
+document.getElementById('r-kw').textContent = d.headline || '';
+document.getElementById('r-icon').textContent = d.icon || '🌙';
+
+// 物語
+const sb = document.getElementById('r-story');
+sb.innerHTML = '';
+if (L.dir === 'rtl') sb.classList.add('rtl-txt'); else sb.classList.remove('rtl-txt');
+(d.story || '').split(/\n+/).filter(p => p.trim()).forEach(p => {
+const el = document.createElement('p'); el.textContent = p; sb.appendChild(el);
+});
+
+// スコア
+const sg = document.getElementById('r-scores'); sg.innerHTML = '';
+['overall','love','money','health'].forEach((k, i) => {
+const v = Math.min(100, Math.max(0, d.scores[k] || 75));
+const el = document.createElement('div'); el.className = 'sc';
+el.innerHTML = `<div class="sc-top"><span class="sc-lbl">${L.scores[i]}</span><span class="sc-val">${v}</span></div><div class="sc-bar"><div class="sc-fill" style="width:0%;background:${SC_C[k]}" data-w="${v}"></div></div>`;
+sg.appendChild(el);
+});
+setTimeout(() => document.querySelectorAll('.sc-fill').forEach(el => el.style.width = el.dataset.w + '%'), 150);
+
+// ラッキー7種類
+const lg = document.getElementById('r-lucky'); lg.innerHTML = '';
+LUCKY_KEYS.forEach((k, i) => {
+const val = d.lucky?.[k] || '—';
+const el = document.createElement('div');
+el.className = 'lucky-item' + (k === 'food' ? ' full' : '');
+el.innerHTML = `<span class="lucky-icon">${L.luckyLabels[i].split(' ')[0]}</span><div class="lucky-info"><div class="lucky-lbl">${L.luckyLabels[i].replace(/^[^\s]+\s/,'')}</div><div class="lucky-val">${val}</div></div>`;
+lg.appendChild(el);
+});
+
+document.getElementById('r-shareq').textContent = '「' + (d.shareQuote || '') + '」';
+if (L.dir === 'rtl') document.getElementById('r-shareq').style.direction = 'rtl';
+
+document.getElementById('shareBox').classList.remove('on');
+document.getElementById('result').classList.add('on');
+window.scrollTo(0, 0);
+}
+
+function toggleShare() {
+document.getElementById('shareBox').classList.toggle('on');
+}
+
+function goHome() {
+document.getElementById('result').classList.remove('on');
+document.getElementById('shareBox').classList.remove('on');
+document.querySelectorAll('.zcard').forEach(x => x.classList.remove('sel'));
+selSign = null;
+document.getElementById('genBtn').disabled = true;
+document.getElementById('formArea').style.display = 'block';
+window.scrollTo(0, 0);
+}
+
+// 初期化
+buildZodiac(LANGS.ja);
+applyUI(LANGS.ja);
+</script>
+</body>
+</html>
+
